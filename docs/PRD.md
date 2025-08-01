@@ -2,7 +2,7 @@
 
 * 使用爬蟲（[Jina.ai](http://Jina.ai) 與 Google News API）定時抓取
 * 使用 LLM（GPT）生成 150~300 字摘要
-* 儲存至 MongoDB 或 MySQL 資料庫
+* 儲存至 MongoDB
 * 前端以 React / Vue 呈現卡片 UI
 
 ### 第二階段功能：語音 Podcast 串流
@@ -34,7 +34,7 @@
 
 * 後端：Flask 或 Django，提供 API
 * 前端：React
-* 資料庫：MongoDB / MySQL
+* 資料庫：MongoDB
 * TTS：OpenAI Whisper（後續可替換）
 * 串流：WebRTC + Cloudflare Stream
 * 託管：可部署於 Cloud Run、Vercel、Render、或本地測試伺服器

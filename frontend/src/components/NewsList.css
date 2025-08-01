@@ -1,0 +1,119 @@
+.news-list-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.news-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.news-list-header h2 {
+  font-size: 24px;
+  color: #333;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.fetch-button,
+.refresh-button,
+.retry-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fetch-button {
+  background-color: #1890ff;
+  color: white;
+}
+
+.fetch-button:hover:not(:disabled) {
+  background-color: #40a9ff;
+}
+
+.fetch-button:disabled {
+  background-color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.fetch-button.secondary {
+  background-color: #52c41a;
+}
+
+.fetch-button.secondary:hover:not(:disabled) {
+  background-color: #73d13d;
+}
+
+.refresh-button {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.refresh-button:hover {
+  background-color: #e0e0e0;
+}
+
+.retry-button {
+  background-color: #1890ff;
+  color: white;
+  margin-top: 12px;
+}
+
+.loading-container,
+.error-container,
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #1890ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  background-color: #f5f5f5;
+  border-radius: 12px;
+  padding: 40px;
+}
+
+.empty-state p {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
