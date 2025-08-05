@@ -44,5 +44,7 @@ class NewsItem:
             'title': news_doc['title'],
             'summary': news_doc['summary'],
             'url': news_doc['url'],
+            'source': news_doc.get('source'),
+            'original_content': news_doc.get('original_content'),
             'created_at': news_doc['created_at'].isoformat() if news_doc.get('created_at') else None
         }

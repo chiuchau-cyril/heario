@@ -1,40 +1,4 @@
 .App {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-}
-
-.App-header {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  padding: 40px 20px;
-  color: white;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.App-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 36px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-.App-header p {
-  margin: 0;
-  font-size: 18px;
-  opacity: 0.9;
-}
-
-main {
-  min-height: calc(100vh - 160px);
-  padding: 20px 0;
-}
-
-@media (max-width: 768px) {
-  .App-header h1 {
-    font-size: 28px;
-  }
-  
-  .App-header p {
-    font-size: 16px;
-  }
+  height: 100vh;
+  overflow: hidden;
 }

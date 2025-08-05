@@ -1,6 +1,15 @@
 .news-list-container {
-  max-width: 800px;
+  max-width: 2400px;
+  width: 100%;
   margin: 0 auto;
+  overflow-y: scroll;
+}
+
+/* 為非 masonry 元素添加 padding */
+.news-list-container > .loading-container,
+.news-list-container > .error-container,
+.news-list-container > .empty-state,
+.news-list-container > *:not(.news-list):not(.news-list-grid) {
   padding: 20px;
 }
 
@@ -112,8 +121,95 @@
   margin-bottom: 16px;
 }
 
+.empty-icon {
+  margin-bottom: 20px;
+  color: #d9d9d9;
+}
+
+.empty-hint {
+  font-size: 14px !important;
+  color: #999 !important;
+  margin-bottom: 20px !important;
+}
+
 .news-list {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  padding: 20px;
+  box-sizing: border-box;
+  /* JavaScript will handle the positioning */
+}
+
+.news-list > div {
+  position: absolute;
+  /* Width and positioning will be set by JavaScript */
+}
+
+.news-list .news-card {
+  width: 100%;
+  margin-bottom: 0;
+  display: block;
+}
+
+/* CSS Grid fallback */
+.news-list-grid {
+  display: grid;
+  gap: 20px;
+  align-items: start;
+  grid-template-columns: repeat(6, 1fr);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 2200px) {
+  .news-list-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 1800px) {
+  .news-list-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1400px) {
+  .news-list-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1200px) {
+  .news-list-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .news-list-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 分頁結果信息樣式 */
+.paginated-info {
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+
+.info-content {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #1890ff;
+}
+
+.background-notice {
+  color: #666;
+  font-weight: normal;
 }

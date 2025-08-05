@@ -1,6 +1,17 @@
 import os
 import re
+import time
+import logging
 import google.generativeai as genai
+
+# Configure performance logging for Summarizer
+summarizer_logger = logging.getLogger('summarizer_performance')
+summarizer_logger.setLevel(logging.INFO)
+if not summarizer_logger.handlers:
+    handler = logging.FileHandler('/Users/cyril/Documents/git/heario/backend/summarizer_performance.log')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    summarizer_logger.addHandler(handler)
 
 class Summarizer:
     def __init__(self):
@@ -67,13 +78,19 @@ class Summarizer:
         
     def generate_summary(self, content: str, title: str = "", max_length: int = 200) -> str:
         """使用 Gemini 2.0 Flash 生成新聞摘要"""
+        start_time = time.time()
+        
         if not self.client:
+            total_time = time.time() - start_time
+            summarizer_logger.warning(f"GEMINI_CLIENT_UNAVAILABLE - Time: {total_time:.2f}s")
             print("Gemini client not available, using simple summary")
             return content[:max_length] + "..." if len(content) > max_length else content
             
         try:
             # 先清理內容，提取主要新聞內容
+            content_cleanup_start = time.time()
             clean_content = self._extract_main_content(content)
+            content_cleanup_time = time.time() - content_cleanup_start
             
             prompt = f"""
             請將以下新聞內容摘要成 {max_length} 字以內的中文摘要。
@@ -91,11 +108,20 @@ class Summarizer:
             請提供摘要：
             """
             
+            api_request_start = time.time()
             response = self.client.generate_content(prompt)
+            api_request_time = time.time() - api_request_start
+            
             summary = response.text.strip()
+            total_time = time.time() - start_time
+            
+            summarizer_logger.info(f"GEMINI_SUCCESS - Title: {title[:50]}..., Content Length: {len(content)}, Clean Content Length: {len(clean_content)}, Summary Length: {len(summary)}, Content Cleanup Time: {content_cleanup_time:.2f}s, API Request Time: {api_request_time:.2f}s, Total Time: {total_time:.2f}s")
+            
             return summary
             
         except Exception as e:
+            total_time = time.time() - start_time
+            summarizer_logger.error(f"GEMINI_ERROR - Title: {title[:50]}..., Content Length: {len(content)}, Time: {total_time:.2f}s, Error: {str(e)}")
             print(f"Error generating Gemini summary: {e}")
             return content[:max_length] + "..." if len(content) > max_length else content
     

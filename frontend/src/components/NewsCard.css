@@ -2,9 +2,14 @@
   background: #ffffff;
   border-radius: 12px;
   padding: 20px;
-  margin-bottom: 16px;
+  margin: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid #f0f0f0;
 }
 
 .news-card:hover {
@@ -35,6 +40,12 @@
   border-top: 1px solid #eee;
 }
 
+.news-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .news-date {
   font-size: 12px;
   color: #999;
@@ -51,4 +62,73 @@
 .news-link:hover {
   color: #40a9ff;
   text-decoration: underline;
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(24, 144, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 12px;
+}
+
+.news-card:hover .card-overlay {
+  opacity: 1;
+}
+
+.click-hint {
+  background: rgba(24, 144, 255, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.playlist-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f0f0f0;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 10;
+}
+
+.playlist-btn:hover {
+  background: #e6f7ff;
+  color: #1890ff;
+  transform: scale(1.1);
+}
+
+.playlist-btn:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+.playlist-btn.in-playlist {
+  background: #52c41a;
+  color: white;
+}
+
+.playlist-btn.in-playlist:hover {
+  background: #73d13d;
+}
+
+.playlist-btn svg {
+  stroke-width: 2.5;
 }

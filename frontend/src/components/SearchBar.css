@@ -1,0 +1,245 @@
+.search-bar-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 24px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 2px solid #e8e8e8;
+  border-radius: 24px;
+  overflow: hidden;
+  transition: all 0.3s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #1890ff;
+  box-shadow: 0 4px 16px rgba(24, 144, 255, 0.1);
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-actions {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  gap: 4px;
+}
+
+.clear-button {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 20px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.clear-button:hover {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.search-button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #1890ff;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.search-button:hover {
+  background: #40a9ff;
+  transform: scale(1.05);
+}
+
+.search-button:active {
+  transform: scale(0.95);
+}
+
+.search-button svg {
+  stroke-width: 2.5;
+}
+
+/* 搜尋歷史下拉選單 */
+.search-history-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 100;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+  color: #666;
+}
+
+.clear-all-button {
+  background: none;
+  border: none;
+  color: #1890ff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.clear-all-button:hover {
+  background: #e6f7ff;
+  color: #096dd9;
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  gap: 12px;
+}
+
+.history-item:hover,
+.history-item.selected {
+  background-color: #f5f5f5;
+}
+
+.history-item.selected {
+  background-color: #e6f7ff;
+}
+
+.history-icon {
+  flex-shrink: 0;
+  color: #999;
+  stroke-width: 2;
+}
+
+.history-text {
+  flex: 1;
+  font-size: 15px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.remove-button {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 18px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  opacity: 0;
+}
+
+.history-item:hover .remove-button {
+  opacity: 1;
+}
+
+.remove-button:hover {
+  background: #fff1f0;
+  color: #ff4d4f;
+}
+
+/* 滾動條樣式 */
+.history-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .search-bar-container {
+    max-width: 100%;
+  }
+  
+  .search-input {
+    font-size: 16px; /* 防止 iOS 自動縮放 */
+    -webkit-appearance: none;
+  }
+  
+  .history-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+  }
+}

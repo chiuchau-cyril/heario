@@ -6,20 +6,26 @@ import os
 from datetime import datetime
 
 from routes.news import news_bp
+from routes.async_news import async_news_bp
 from routes.audio import audio_bp
 from routes.rss import rss_bp
+from middleware.performance_middleware import PerformanceMiddleware
 
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app, origins=['http://localhost:3000', 'http://localhost:3003'], supports_credentials=True)
 
+# Initialize performance monitoring
+performance_middleware = PerformanceMiddleware(app)
+
 mongo_client = MongoClient(os.getenv('MONGODB_URI'))
 db = mongo_client.heario
 app.config['db'] = db
 
 app.register_blueprint(news_bp, url_prefix='/api')
-app.register_blueprint(audio_bp, url_prefix='/api')
+app.register_blueprint(async_news_bp, url_prefix='/api')
+app.register_blueprint(audio_bp)
 app.register_blueprint(rss_bp, url_prefix='/api')
 
 @app.route('/')

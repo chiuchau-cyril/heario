@@ -1,11 +1,23 @@
 from flask import Blueprint, jsonify, request, current_app
 from datetime import datetime
 from bson import ObjectId
+import time
+import logging
 
 from models.news import NewsItem
 from services.news_crawler import NewsCrawler
 from services.summarizer import Summarizer
 import re
+import time
+
+# Configure performance logging
+performance_logger = logging.getLogger('performance')
+performance_logger.setLevel(logging.INFO)
+if not performance_logger.handlers:
+    handler = logging.FileHandler('/Users/cyril/Documents/git/heario/backend/performance.log')
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    performance_logger.addHandler(handler)
 
 news_bp = Blueprint('news', __name__)
 
@@ -175,7 +187,10 @@ def fetch_top_headlines():
         if not articles:
             return jsonify({'message': 'No headlines found'}), 404
         
-        processed_count = 0
+        # 批量收集要處理的 URLs，減少逐一處理的延遲
+        urls_to_process = []
+        articles_to_process = []
+        
         for article in articles:
             url = article.get('url')
             if not url:
@@ -184,10 +199,40 @@ def fetch_top_headlines():
             existing = news_collection.find_one({'url': url})
             if existing:
                 continue
-            
-            # 優先使用 Jina AI 抓取完整內容
-            print(f"Fetching full content for: {article.get('title', 'Unknown')}")
-            full_content = crawler.fetch_with_jina(url)
+                
+            urls_to_process.append(url)
+            articles_to_process.append(article)
+        
+        if not urls_to_process:
+            return jsonify({
+                'message': 'No new articles to process',
+                'total_articles': len(articles),
+                'processed': 0
+            }), 200
+        
+        # 使用優化的並行處理
+        from jina_performance_optimization import OptimizedJinaFetcher
+        import os
+        
+        fetcher = OptimizedJinaFetcher(
+            jina_api_key=os.getenv('JINA_API_KEY'),
+            cache_ttl=3600  # 1小時快取
+        )
+        
+        print(f"Parallel fetching content for {len(urls_to_process)} articles...")
+        batch_start = time.time()
+        content_results = fetcher.fetch_urls_parallel(
+            urls_to_process, 
+            max_workers=5,  # 增加並行數提升效能
+            timeout=6       # 進一步減少逾時時間
+        )
+        batch_time = time.time() - batch_start
+        print(f"Batch Jina fetch completed in {batch_time:.2f}s")
+        
+        processed_count = 0
+        for i, article in enumerate(articles_to_process):
+            url = urls_to_process[i]
+            full_content = content_results.get(url, '')
             
             # 如果 Jina 失敗，使用 News API 提供的內容
             if not full_content:
@@ -233,6 +278,19 @@ def fetch_top_headlines():
 @news_bp.route('/news/fetch', methods=['POST'])
 def fetch_and_process_news():
     """手動觸發新聞抓取和處理（使用 Jina AI 抓取完整內容）"""
+    endpoint_start_time = time.time()
+    performance_metrics = {
+        'endpoint': '/news/fetch',
+        'query': None,
+        'total_articles': 0,
+        'processed_articles': 0,
+        'news_api_time': 0,
+        'jina_times': [],
+        'summarization_times': [],
+        'database_times': [],
+        'total_time': 0
+    }
+    
     try:
         db = current_app.config['db']
         news_collection = db.news
@@ -241,25 +299,54 @@ def fetch_and_process_news():
         summarizer = Summarizer()
         
         query = request.json.get('query', '台灣')
+        performance_metrics['query'] = query
         
+        # Measure News API time
+        news_api_start = time.time()
         articles = crawler.fetch_news(query=query, language='', page_size=5)
+        news_api_time = time.time() - news_api_start
+        performance_metrics['news_api_time'] = news_api_time
+        
+        performance_logger.info(f"News API fetch completed in {news_api_time:.2f}s for query: {query}")
         
         if not articles:
+            performance_metrics['total_time'] = time.time() - endpoint_start_time
+            performance_logger.info(f"Performance: {performance_metrics}")
             return jsonify({'message': 'No articles found'}), 404
         
+        performance_metrics['total_articles'] = len(articles)
         processed_count = 0
+        
         for article in articles:
             url = article.get('url')
             if not url:
                 continue
             
+            # Measure database lookup time
+            db_lookup_start = time.time()
             existing = news_collection.find_one({'url': url})
+            db_lookup_time = time.time() - db_lookup_start
+            performance_metrics['database_times'].append({
+                'operation': 'lookup',
+                'time': db_lookup_time
+            })
+            
             if existing:
                 continue
             
-            # 優先使用 Jina AI 抓取完整內容
+            # Measure Jina AI time
             print(f"Fetching full content for: {article.get('title', 'Unknown')}")
+            jina_start = time.time()
             full_content = crawler.fetch_with_jina(url)
+            jina_time = time.time() - jina_start
+            performance_metrics['jina_times'].append({
+                'url': url,
+                'time': jina_time,
+                'success': bool(full_content),
+                'content_length': len(full_content) if full_content else 0
+            })
+            
+            performance_logger.info(f"Jina AI fetch for {url} completed in {jina_time:.2f}s, success: {bool(full_content)}")
             
             # 如果 Jina 失敗，使用 News API 提供的內容
             if not full_content:
@@ -268,17 +355,36 @@ def fetch_and_process_news():
             
             if full_content and len(full_content) > 50:
                 try:
-                    # 使用 OpenAI 生成高品質摘要
+                    # Measure summarization time
+                    summarization_start = time.time()
                     summary = summarizer.generate_summary(
                         content=full_content,
                         title=article.get('title', ''),
                         max_length=150
                     )
+                    summarization_time = time.time() - summarization_start
+                    performance_metrics['summarization_times'].append({
+                        'method': 'Gemini',
+                        'time': summarization_time,
+                        'content_length': len(full_content),
+                        'summary_length': len(summary)
+                    })
+                    
+                    performance_logger.info(f"Gemini summarization completed in {summarization_time:.2f}s")
                     print(f"Generated summary: {summary[:100]}...")
                 except Exception as e:
-                    print(f"OpenAI summary failed: {e}")
-                    # 如果 OpenAI 失敗，使用更智能的簡單摘要
+                    print(f"Gemini summary failed: {e}")
+                    # 如果 Gemini 失敗，使用更智能的簡單摘要
+                    fallback_start = time.time()
                     summary = create_smart_summary(full_content, article.get('title', ''), 150)
+                    fallback_time = time.time() - fallback_start
+                    performance_metrics['summarization_times'].append({
+                        'method': 'Smart_Summary_Fallback',
+                        'time': fallback_time,
+                        'content_length': len(full_content),
+                        'summary_length': len(summary),
+                        'error': str(e)
+                    })
                 
                 news_item = NewsItem(
                     title=article.get('title'),
@@ -288,17 +394,46 @@ def fetch_and_process_news():
                     original_content=full_content
                 )
                 
+                # Measure database insert time
+                db_insert_start = time.time()
                 news_collection.insert_one(news_item.to_dict())
+                db_insert_time = time.time() - db_insert_start
+                performance_metrics['database_times'].append({
+                    'operation': 'insert',
+                    'time': db_insert_time
+                })
+                
                 processed_count += 1
                 print(f"Successfully processed: {article.get('title', 'Unknown')}")
+        
+        performance_metrics['processed_articles'] = processed_count
+        performance_metrics['total_time'] = time.time() - endpoint_start_time
+        
+        # Log comprehensive performance metrics
+        performance_logger.info(f"ENDPOINT_PERFORMANCE: {performance_metrics}")
+        
+        # Calculate averages for summary
+        avg_jina_time = sum(j['time'] for j in performance_metrics['jina_times']) / len(performance_metrics['jina_times']) if performance_metrics['jina_times'] else 0
+        avg_summarization_time = sum(s['time'] for s in performance_metrics['summarization_times']) / len(performance_metrics['summarization_times']) if performance_metrics['summarization_times'] else 0
+        
+        performance_logger.info(f"PERFORMANCE_SUMMARY - Total: {performance_metrics['total_time']:.2f}s, News API: {news_api_time:.2f}s, Avg Jina: {avg_jina_time:.2f}s, Avg Summarization: {avg_summarization_time:.2f}s")
         
         return jsonify({
             'message': f'Successfully processed {processed_count} new articles',
             'total_articles': len(articles),
-            'processed': processed_count
+            'processed': processed_count,
+            'performance': {
+                'total_time': performance_metrics['total_time'],
+                'news_api_time': news_api_time,
+                'avg_jina_time': avg_jina_time,
+                'avg_summarization_time': avg_summarization_time
+            }
         }), 200
         
     except Exception as e:
+        performance_metrics['total_time'] = time.time() - endpoint_start_time
+        performance_metrics['error'] = str(e)
+        performance_logger.error(f"ENDPOINT_ERROR: {performance_metrics}")
         print(f"Error in fetch_and_process_news: {e}")
         return jsonify({'error': str(e)}), 500
 
